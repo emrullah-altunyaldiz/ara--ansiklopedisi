@@ -40,4 +40,38 @@ public class Kategori {
             alt.agaciYazdir(seviye + 1);
         }
     }
+    public Kategori kokuBul() {
+        Kategori simdiki = this;
+        while (!simdiki.kokMu()) {
+            simdiki = simdiki.getUstKategori();
+        }
+        return simdiki;
+    }
+
+    public boolean altinda(Kategori k) {
+        if (k == null) {
+            return false;
+        }
+        Kategori simdiki = this;
+        while (simdiki != null) {
+            if (simdiki == k) {
+                return true;
+            }
+            simdiki = simdiki.getUstKategori();
+        }
+        return false;
+        }
+
+    public List<Kategori> tumTorunlar() {
+        List<Kategori> sonuc = new ArrayList<>();
+        tumTorunlar(sonuc);
+        return sonuc;
+    }
+
+    private void tumTorunlar(List<Kategori> sonuc) {
+        for (Kategori alt : altKategoriler) {
+            sonuc.add(alt);
+            alt.tumTorunlar(sonuc);
+        }
+    }
 }
