@@ -3,10 +3,10 @@ package com.aracansiklopedisi.model;
 import java.time.Year;
 
 public class Marka {
+    private static final int EN_ESKI_YIL = 1800;
     private final String ad;
     private final String ulke;
     private final int kurulusYili;
-    private static final int EN_ESKİ_YIL = 1800;
 
     public Marka(String ad,String ulke,int kurulusYili) {
         if(ad == null || ad.isBlank()){
@@ -17,8 +17,9 @@ public class Marka {
             throw new IllegalArgumentException("Ulke bos olamaz!");
         }
         this.ulke = ulke.trim();
-        if(kurulusYili < EN_ESKİ_YIL || kurulusYili > Year.now().getValue()){
-            throw new IllegalArgumentException("Kurulus yili 1800 ile bu yil arasinda olmalidir ");
+        int buYil = Year.now().getValue();
+        if(kurulusYili < EN_ESKI_YIL || kurulusYili > buYil){
+            throw new IllegalArgumentException("Kurulus yili " + EN_ESKI_YIL + " ile " + buYil + " arasinda olamaz : " + kurulusYili);
         }
         this.kurulusYili = kurulusYili;
     }

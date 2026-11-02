@@ -68,7 +68,7 @@ public class Model {
             }
             sb.append(k.getAd());
         }
-        return "Model{marka=" + marka.getAd() + ", ad=" + ad + ", anaKategori=" + anaKategori.getAd() + ", kategoriler=[" + sb + "]";
+        return "Model{marka=" + marka.getAd() + ", ad=" + ad + ", anaKategori=" + anaKategori.getAd() + ", kategoriler=[" + sb + "]}";
     }
     @Override 
     public boolean equals(Object o){
@@ -79,7 +79,7 @@ public class Model {
             return false;
         }
         Model diger = (Model) o;
-        return this.marka.equals(diger.marka) && this.ad.equals(diger.ad);
+        return this.marka.equals(diger.marka) && this.ad.equalsIgnoreCase(diger.ad);
     }
     @Override 
     public int hashCode(){

@@ -51,6 +51,13 @@ public class Main {
 
         // 6) Hata testleri
         try {
+            new Marka("Test", "Tr", 2100);
+            System.out.println("Hata firlatilmadi.");
+            
+        } catch (IllegalArgumentException e) {
+            System.out.println("Hata: " + e.getMessage());
+        }
+        try {
             new Model("  ", toyota, sedan, null);
         } catch (IllegalArgumentException e) {
             System.out.println("Hata: " + e.getMessage());

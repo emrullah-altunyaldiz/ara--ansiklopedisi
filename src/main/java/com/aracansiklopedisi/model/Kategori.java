@@ -60,7 +60,7 @@ public class Kategori {
             simdiki = simdiki.getUstKategori();
         }
         return false;
-        }
+    }
 
     public List<Kategori> tumTorunlar() {
         List<Kategori> sonuc = new ArrayList<>();
