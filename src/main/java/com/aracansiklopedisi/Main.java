@@ -49,6 +49,8 @@ public class Main {
         System.out.println(a.kategorideMi(motosiklet));   // false
         System.out.println(x.kategorideMi(araziAraci));   // true
 
+        markaYilSinirTestleri();
+
         // 6) Hata testleri
         try {
             new Marka("Test", "Tr", 2100);
@@ -86,5 +88,38 @@ public class Main {
         } catch (UnsupportedOperationException e) {
             System.out.println("Disaridan ekleme engellendi.");
         }
+    }
+    private static void markaYilSinirTestleri() {
+        int buYil = java.time.Year.now().getValue();
+        int[] yillar = {1799, 1800, buYil, buYil + 1, 2100};
+
+        for (int yil : yillar) {
+            try {
+                new Marka("Test", "TR", yil);
+                System.out.println(yil + " -> Gecerli");
+            } catch (IllegalArgumentException e) {
+                System.out.println(yil + " -> Hata: " + e.getMessage());
+            }
+        }
+    }
+    private static void kategoriTestleri() {
+        System.out.println("--- Kategori testleri ---");
+        Kategori kara = new Kategori("Kara", null);
+        Kategori otomobil = new Kategori("Otomobil", kara);
+        Kategori sedan = new Kategori("Sedan", otomobil);
+        new Kategori("SUV", otomobil);
+        Kategori motosiklet = new Kategori("Motosiklet", kara);
+        new Kategori("Arazi Araci", kara);
+
+        kara.agaciYazdir();
+        System.out.println(sedan.kokuBul().getAd());       // Kara
+        System.out.println(kara.kokuBul().getAd());        // Kara
+        System.out.println(sedan.altinda(kara));           // true
+        System.out.println(sedan.altinda(sedan));          // true
+        System.out.println(kara.altinda(sedan));           // false
+        System.out.println(motosiklet.altinda(otomobil));  // false
+        System.out.println(sedan.altinda(null));           // false
+        System.out.println(kara.tumTorunlar().size());     // 5
+        System.out.println(sedan.tumTorunlar().size());    // 0
     }
 }
