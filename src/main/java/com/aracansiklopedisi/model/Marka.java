@@ -19,7 +19,7 @@ public class Marka {
         this.ulke = ulke.trim();
         int buYil = Year.now().getValue();
         if(kurulusYili < EN_ESKI_YIL || kurulusYili > buYil){
-            throw new IllegalArgumentException("Kurulus yili " + EN_ESKI_YIL + " ile " + buYil + " arasinda olamaz : " + kurulusYili);
+            throw new IllegalArgumentException("Kurulus yili " + EN_ESKI_YIL + " ile " + buYil + " arasinda olmali : " + kurulusYili);
         }
         this.kurulusYili = kurulusYili;
     }

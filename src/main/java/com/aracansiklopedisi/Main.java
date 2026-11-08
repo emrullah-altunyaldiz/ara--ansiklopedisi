@@ -1,109 +1,65 @@
 package com.aracansiklopedisi;
 
+import java.time.Year;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.aracansiklopedisi.model.Batarya;
 import com.aracansiklopedisi.model.Kategori;
 import com.aracansiklopedisi.model.Marka;
 import com.aracansiklopedisi.model.Model;
+import com.aracansiklopedisi.model.YakitTipi;
 
 public class Main {
+    private static int basarili = 0;
+    private static int basarisiz = 0;
+
     public static void main(String[] args) {
-        // 1) Kategori agaci
-        Kategori kara = new Kategori("Kara", null);
-        Kategori otomobil = new Kategori("Otomobil", kara);
-        Kategori sedan = new Kategori("Sedan", otomobil);
-        Kategori suv = new Kategori("SUV", otomobil);
-        Kategori motosiklet = new Kategori("Motosiklet", kara);
-        Kategori araziAraci = new Kategori("Arazi Araci", kara);
+        kategoriTestleri();
+        markaTestleri();
+        modelTestleri();
+        bataryaTestleri();
+        yakitTipiTestleri();
+        ozetYazdir();
+    }
 
-        kara.agaciYazdir();
+    // ---------- Yardimci metotlar ----------
 
-        // 2) Markalar
-        Marka toyota = new Marka("Toyota", "Japonya", 1937);
-        Marka toyota2 = new Marka("toyota", "Japonya", 1937);
+    private static void baslik(String ad) {
+        System.out.println();
+        System.out.println("--- " + ad + " ---");
+    }
 
-        // 3) Temel model + equals/hashCode testi
-        Model a = new Model("Corolla", toyota, sedan, null);
-        Model b = new Model("COROLLA", toyota2, sedan, null);
-
-        System.out.println(a);
-        System.out.println(a.equals(b));                  // true
-        System.out.println(a.hashCode() == b.hashCode()); // true
-
-        Set<Model> kume = new HashSet<>();
-        kume.add(a);
-        kume.add(b);
-        System.out.println(kume.size());                  // 1
-
-        // 4) Coklu kategori + defensive copy testi
-        Set<Kategori> ek = new HashSet<>();
-        ek.add(araziAraci);
-        Model x = new Model("Ornek SUV", toyota, suv, ek);
-        System.out.println(x.getKategoriler().size());    // 2
-        ek.clear();
-        System.out.println(x.getKategoriler().size());    // hala 2
-
-        // 5) kategorideMi testi
-        System.out.println(a.kategorideMi(kara));         // true
-        System.out.println(a.kategorideMi(motosiklet));   // false
-        System.out.println(x.kategorideMi(araziAraci));   // true
-
-        markaYilSinirTestleri();
-
-        // 6) Hata testleri
-        try {
-            new Marka("Test", "Tr", 2100);
-            System.out.println("Hata firlatilmadi.");
-            
-        } catch (IllegalArgumentException e) {
-            System.out.println("Hata: " + e.getMessage());
-        }
-        try {
-            new Model("  ", toyota, sedan, null);
-        } catch (IllegalArgumentException e) {
-            System.out.println("Hata: " + e.getMessage());
-        }
-        try {
-            new Model("Test", null, sedan, null);
-        } catch (IllegalArgumentException e) {
-            System.out.println("Hata: " + e.getMessage());
-        }
-        try {
-            new Model("Test", toyota, null, null);
-        } catch (IllegalArgumentException e) {
-            System.out.println("Hata: " + e.getMessage());
-        }
-        try {
-            Set<Kategori> bozuk = new HashSet<>();
-            bozuk.add(null);
-            new Model("Test", toyota, sedan, bozuk);
-        } catch (IllegalArgumentException e) {
-            System.out.println("Hata: " + e.getMessage());
-        }
-
-        // 7) Salt okunur kume testi
-        try {
-            a.getKategoriler().add(motosiklet);
-        } catch (UnsupportedOperationException e) {
-            System.out.println("Disaridan ekleme engellendi.");
+    private static void kontrol(String ad, boolean sonuc) {
+        if (sonuc) {
+            basarili++;
+            System.out.println("[OK]   " + ad);
+        } else {
+            basarisiz++;
+            System.out.println("[HATA] " + ad);
         }
     }
-    private static void markaYilSinirTestleri() {
-        int buYil = java.time.Year.now().getValue();
-        int[] yillar = {1799, 1800, buYil, buYil + 1, 2100};
 
-        for (int yil : yillar) {
-            try {
-                new Marka("Test", "TR", yil);
-                System.out.println(yil + " -> Gecerli");
-            } catch (IllegalArgumentException e) {
-                System.out.println(yil + " -> Hata: " + e.getMessage());
-            }
+    private static void hataBeklenir(String ad, Runnable kod) {
+        try {
+            kod.run();
+            basarisiz++;
+            System.out.println("[HATA] " + ad + " -> hata firlatilmadi!");
+        } catch (IllegalArgumentException e) {
+            basarili++;
+            System.out.println("[OK]   " + ad + " -> " + e.getMessage());
         }
     }
+
+    private static void ozetYazdir() {
+        System.out.println();
+        System.out.println("=== OZET: " + basarili + " basarili, " + basarisiz + " basarisiz ===");
+    }
+
+    // ---------- Kategori ----------
+
     private static void kategoriTestleri() {
-        System.out.println("--- Kategori testleri ---");
+        baslik("Kategori testleri");
         Kategori kara = new Kategori("Kara", null);
         Kategori otomobil = new Kategori("Otomobil", kara);
         Kategori sedan = new Kategori("Sedan", otomobil);
@@ -112,14 +68,157 @@ public class Main {
         new Kategori("Arazi Araci", kara);
 
         kara.agaciYazdir();
-        System.out.println(sedan.kokuBul().getAd());       // Kara
-        System.out.println(kara.kokuBul().getAd());        // Kara
-        System.out.println(sedan.altinda(kara));           // true
-        System.out.println(sedan.altinda(sedan));          // true
-        System.out.println(kara.altinda(sedan));           // false
-        System.out.println(motosiklet.altinda(otomobil));  // false
-        System.out.println(sedan.altinda(null));           // false
-        System.out.println(kara.tumTorunlar().size());     // 5
-        System.out.println(sedan.tumTorunlar().size());    // 0
+
+        kontrol("kara kok mu", kara.kokMu());
+        kontrol("sedan kok degil", !sedan.kokMu());
+        kontrol("sedan.kokuBul() == kara", sedan.kokuBul() == kara);
+        kontrol("kara.kokuBul() == kara", kara.kokuBul() == kara);
+        kontrol("sedan kara'nin altinda", sedan.altinda(kara));
+        kontrol("sedan otomobilin altinda", sedan.altinda(otomobil));
+        kontrol("sedan kendi altinda", sedan.altinda(sedan));
+        kontrol("kara sedanin altinda degil", !kara.altinda(sedan));
+        kontrol("motosiklet otomobilin altinda degil", !motosiklet.altinda(otomobil));
+        kontrol("altinda(null) false", !sedan.altinda(null));
+        kontrol("kara torun sayisi 5", kara.tumTorunlar().size() == 5);
+        kontrol("sedan torun sayisi 0", sedan.tumTorunlar().isEmpty());
+        kontrol("ad trim edilir", new Kategori("  Test  ", null).getAd().equals("Test"));
+
+        hataBeklenir("bos kategori adi", () -> new Kategori("   ", null));
+        hataBeklenir("null kategori adi", () -> new Kategori(null, null));
+
+        try {
+            kara.getAltKategoriler().add(new Kategori("Hacker", null));
+            kontrol("alt liste disaridan degistirilemez", false);
+        } catch (UnsupportedOperationException e) {
+            kontrol("alt liste disaridan degistirilemez", true);
+        }
+    }
+
+    // ---------- Marka ----------
+
+    private static void markaTestleri() {
+        baslik("Marka testleri");
+        int buYil = Year.now().getValue();
+
+        Marka toyota = new Marka("Toyota", "Japonya", 1937);
+        System.out.println(toyota);
+        kontrol("getAd", toyota.getAd().equals("Toyota"));
+        kontrol("getUlke", toyota.getUlke().equals("Japonya"));
+        kontrol("getKurulusYili", toyota.getKurulusYili() == 1937);
+        kontrol("ad trim edilir", new Marka("  Ford  ", "ABD", 1903).getAd().equals("Ford"));
+
+        hataBeklenir("bos ad", () -> new Marka("  ", "Japonya", 1937));
+        hataBeklenir("null ulke", () -> new Marka("Test", null, 1937));
+        hataBeklenir("yil 1799", () -> new Marka("Test", "TR", 1799));
+        hataBeklenir("yil bu yil + 1", () -> new Marka("Test", "TR", buYil + 1));
+        hataBeklenir("yil 2100", () -> new Marka("Test", "TR", 2100));
+        kontrol("yil 1800 gecerli", new Marka("Test", "TR", 1800).getKurulusYili() == 1800);
+        kontrol("yil bu yil gecerli", new Marka("Test", "TR", buYil).getKurulusYili() == buYil);
+
+        Marka kucuk = new Marka("toyota", "Japonya", 1937);
+        kontrol("equals buyuk/kucuk harf duyarsiz", toyota.equals(kucuk));
+        kontrol("hashCode esit", toyota.hashCode() == kucuk.hashCode());
+        kontrol("equals null false", !toyota.equals(null));
+        kontrol("equals farkli marka false", !toyota.equals(new Marka("Ford", "ABD", 1903)));
+
+        Set<Marka> kume = new HashSet<>();
+        kume.add(toyota);
+        kume.add(kucuk);
+        kontrol("HashSet boyutu 1", kume.size() == 1);
+    }
+
+    // ---------- Model ----------
+
+    private static void modelTestleri() {
+        baslik("Model testleri");
+        Kategori kara = new Kategori("Kara", null);
+        Kategori otomobil = new Kategori("Otomobil", kara);
+        Kategori sedan = new Kategori("Sedan", otomobil);
+        Kategori suv = new Kategori("SUV", otomobil);
+        Kategori motosiklet = new Kategori("Motosiklet", kara);
+        Kategori araziAraci = new Kategori("Arazi Araci", kara);
+
+        Marka toyota = new Marka("Toyota", "Japonya", 1937);
+        Marka toyota2 = new Marka("toyota", "Japonya", 1937);
+
+        Model corolla = new Model("Corolla", toyota, sedan, null);
+        Model corolla2 = new Model("COROLLA", toyota2, sedan, null);
+        System.out.println(corolla);
+
+        kontrol("getAd", corolla.getAd().equals("Corolla"));
+        kontrol("getMarka", corolla.getMarka() == toyota);
+        kontrol("getAnaKategori", corolla.getAnaKategori() == sedan);
+        kontrol("ek kategorisiz model 1 kategori", corolla.getKategoriler().size() == 1);
+
+        kontrol("equals", corolla.equals(corolla2));
+        kontrol("hashCode esit", corolla.hashCode() == corolla2.hashCode());
+        Set<Model> kume = new HashSet<>();
+        kume.add(corolla);
+        kume.add(corolla2);
+        kontrol("HashSet boyutu 1", kume.size() == 1);
+        kontrol("farkli marka ayni ad esit degil",
+                !corolla.equals(new Model("Corolla", new Marka("Ford", "ABD", 1903), sedan, null)));
+
+        Set<Kategori> ek = new HashSet<>();
+        ek.add(araziAraci);
+        Model ornekSuv = new Model("Ornek SUV", toyota, suv, ek);
+        kontrol("coklu kategori 2 eleman", ornekSuv.getKategoriler().size() == 2);
+        ek.clear();
+        kontrol("defensive copy: dis kume silinince etkilenmez", ornekSuv.getKategoriler().size() == 2);
+
+        kontrol("corolla kara kategorisinde", corolla.kategorideMi(kara));
+        kontrol("corolla motosiklet kategorisinde degil", !corolla.kategorideMi(motosiklet));
+        kontrol("suv modeli arazi kategorisinde", ornekSuv.kategorideMi(araziAraci));
+        kontrol("kategorideMi(null) false", !corolla.kategorideMi(null));
+
+        hataBeklenir("bos model adi", () -> new Model("  ", toyota, sedan, null));
+        hataBeklenir("null marka", () -> new Model("Test", null, sedan, null));
+        hataBeklenir("null ana kategori", () -> new Model("Test", toyota, null, null));
+        hataBeklenir("ek kategoride null eleman", () -> {
+            Set<Kategori> bozuk = new HashSet<>();
+            bozuk.add(null);
+            new Model("Test", toyota, sedan, bozuk);
+        });
+
+        try {
+            corolla.getKategoriler().add(motosiklet);
+            kontrol("kategori kumesi disaridan degistirilemez", false);
+        } catch (UnsupportedOperationException e) {
+            kontrol("kategori kumesi disaridan degistirilemez", true);
+        }
+    }
+
+    // ---------- Batarya ----------
+
+    private static void bataryaTestleri() {
+        baslik("Batarya testleri");
+        Batarya b1 = new Batarya(82.5, 450);
+        Batarya b2 = new Batarya(82.5, 450);
+        System.out.println(b1);
+
+        kontrol("getKapasiteKwh", b1.getKapasiteKwh() == 82.5);
+        kontrol("getMenzilKm", b1.getMenzilKm() == 450);
+        kontrol("equals", b1.equals(b2));
+        kontrol("hashCode esit", b1.hashCode() == b2.hashCode());
+        kontrol("farkli batarya esit degil", !b1.equals(new Batarya(60, 400)));
+
+        hataBeklenir("kapasite 0", () -> new Batarya(0, 450));
+        hataBeklenir("kapasite -5", () -> new Batarya(-5, 450));
+        hataBeklenir("kapasite NaN", () -> new Batarya(Double.NaN, 450));
+        hataBeklenir("kapasite sonsuz", () -> new Batarya(Double.POSITIVE_INFINITY, 450));
+        hataBeklenir("kapasite 300.1 (ust sinir asildi)", () -> new Batarya(300.1, 450));
+        hataBeklenir("menzil 0", () -> new Batarya(82.5, 0));
+        hataBeklenir("menzil -10", () -> new Batarya(82.5, -10));
+
+        kontrol("kapasite 0.1 gecerli", new Batarya(0.1, 450).getKapasiteKwh() == 0.1);
+        kontrol("kapasite 300 gecerli", new Batarya(300, 450).getKapasiteKwh() == 300);
+    }
+
+    // ---------- YakitTipi ----------
+
+    private static void yakitTipiTestleri() {
+        baslik("YakitTipi testleri");
+        kontrol("5 yakit tipi var", YakitTipi.values().length == 5);
+        kontrol("ELEKTRIK mevcut", YakitTipi.valueOf("ELEKTRIK") == YakitTipi.ELEKTRIK);
     }
 }
