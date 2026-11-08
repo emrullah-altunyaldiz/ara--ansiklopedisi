@@ -8,6 +8,7 @@ import com.aracansiklopedisi.model.Batarya;
 import com.aracansiklopedisi.model.Kategori;
 import com.aracansiklopedisi.model.Marka;
 import com.aracansiklopedisi.model.Model;
+import com.aracansiklopedisi.model.Varyant;
 import com.aracansiklopedisi.model.YakitTipi;
 
 public class Main {
@@ -20,6 +21,7 @@ public class Main {
         modelTestleri();
         bataryaTestleri();
         yakitTipiTestleri();
+        varyantTestleri();
         ozetYazdir();
     }
 
@@ -220,5 +222,75 @@ public class Main {
         baslik("YakitTipi testleri");
         kontrol("5 yakit tipi var", YakitTipi.values().length == 5);
         kontrol("ELEKTRIK mevcut", YakitTipi.valueOf("ELEKTRIK") == YakitTipi.ELEKTRIK);
+    }
+
+    // ---------- Varyant ----------
+
+    private static void varyantTestleri() {
+        baslik("Varyant testleri");
+        int buYil = Year.now().getValue();
+
+        Kategori kara = new Kategori("Kara", null);
+        Kategori otomobil = new Kategori("Otomobil", kara);
+        Kategori sedan = new Kategori("Sedan", otomobil);
+        Marka toyota = new Marka("Toyota", "Japonya", 1937);
+        Model corolla = new Model("Corolla", toyota, sedan, null);
+        Batarya bat = new Batarya(82.5, 450);
+
+        Varyant dizel = new Varyant(corolla, "1.6 Dizel", 2019, null, YakitTipi.DIZEL, 110, 1300, null);
+        System.out.println(dizel);
+        kontrol("uretimdeMi true", dizel.uretimdeMi());
+        kontrol("bitisYili bos", dizel.getBitisYili().isEmpty());
+        kontrol("dizelde batarya yok", dizel.getBatarya().isEmpty());
+        kontrol("ad trim edilir",
+                new Varyant(corolla, "  1.8  ", 2019, null, YakitTipi.BENZIN, 120, 1300, null).getAd().equals("1.8"));
+
+        Varyant elektrikli = new Varyant(corolla, "EV", 2022, 2024, YakitTipi.ELEKTRIK, 200, 1800, bat);
+        kontrol("elektrikli batarya var", elektrikli.getBatarya().isPresent());
+        kontrol("elektrikli uretimde degil", !elektrikli.uretimdeMi());
+        kontrol("bitisYili 2024", elektrikli.getBitisYili().get() == 2024);
+
+        hataBeklenir("ELEKTRIK + batarya null",
+                () -> new Varyant(corolla, "EV", 2022, null, YakitTipi.ELEKTRIK, 200, 1800, null));
+        hataBeklenir("DIZEL + batarya dolu",
+                () -> new Varyant(corolla, "X", 2022, null, YakitTipi.DIZEL, 100, 1300, bat));
+        hataBeklenir("BENZIN + batarya dolu",
+                () -> new Varyant(corolla, "X", 2022, null, YakitTipi.BENZIN, 100, 1300, bat));
+        hataBeklenir("LPG + batarya dolu",
+                () -> new Varyant(corolla, "X", 2022, null, YakitTipi.LPG, 100, 1300, bat));
+        kontrol("HIBRIT bataryasiz gecerli",
+                new Varyant(corolla, "H", 2022, null, YakitTipi.HIBRIT, 120, 1400, null).getBatarya().isEmpty());
+        kontrol("HIBRIT bataryali gecerli",
+                new Varyant(corolla, "H2", 2022, null, YakitTipi.HIBRIT, 120, 1400, bat).getBatarya().isPresent());
+
+        hataBeklenir("bitis < baslangic",
+                () -> new Varyant(corolla, "X", 2020, 2019, YakitTipi.DIZEL, 100, 1300, null));
+        hataBeklenir("bitis gelecekte",
+                () -> new Varyant(corolla, "X", 2020, buYil + 1, YakitTipi.DIZEL, 100, 1300, null));
+        kontrol("bitis = baslangic gecerli",
+                new Varyant(corolla, "Y", 2020, 2020, YakitTipi.DIZEL, 100, 1300, null).getBitisYili().get() == 2020);
+
+        hataBeklenir("baslangic 1879",
+                () -> new Varyant(corolla, "X", 1879, null, YakitTipi.DIZEL, 100, 1300, null));
+        kontrol("baslangic 1880 gecerli",
+                new Varyant(corolla, "A", 1880, null, YakitTipi.DIZEL, 100, 1300, null).getBaslangicYili() == 1880);
+        kontrol("baslangic bu yil gecerli",
+                new Varyant(corolla, "B", buYil, null, YakitTipi.DIZEL, 100, 1300, null).getBaslangicYili() == buYil);
+        hataBeklenir("baslangic bu yil + 1",
+                () -> new Varyant(corolla, "X", buYil + 1, null, YakitTipi.DIZEL, 100, 1300, null));
+
+        hataBeklenir("guc 0", () -> new Varyant(corolla, "X", 2020, null, YakitTipi.DIZEL, 0, 1300, null));
+        hataBeklenir("guc negatif", () -> new Varyant(corolla, "X", 2020, null, YakitTipi.DIZEL, -5, 1300, null));
+        hataBeklenir("agirlik 0", () -> new Varyant(corolla, "X", 2020, null, YakitTipi.DIZEL, 100, 0, null));
+
+        hataBeklenir("null model", () -> new Varyant(null, "X", 2020, null, YakitTipi.DIZEL, 100, 1300, null));
+        hataBeklenir("bos ad", () -> new Varyant(corolla, "  ", 2020, null, YakitTipi.DIZEL, 100, 1300, null));
+        hataBeklenir("null yakit tipi", () -> new Varyant(corolla, "X", 2020, null, null, 100, 1300, null));
+
+        Varyant dizel2 = new Varyant(corolla, "1.6 DIZEL", 2019, null, YakitTipi.DIZEL, 110, 1300, null);
+        kontrol("equals (ad harf farki)", dizel.equals(dizel2));
+        kontrol("hashCode esit", dizel.hashCode() == dizel2.hashCode());
+        kontrol("farkli yakit esit degil",
+                !dizel.equals(new Varyant(corolla, "1.6 Dizel", 2019, null, YakitTipi.BENZIN, 110, 1300, null)));
     }
 }

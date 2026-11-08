@@ -2,6 +2,7 @@ package com.aracansiklopedisi.model;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
@@ -83,6 +84,6 @@ public class Model {
     }
     @Override 
     public int hashCode(){
-        return Objects.hash(marka,ad.toLowerCase());
+        return Objects.hash(marka,ad.toLowerCase(Locale.ROOT));
     }
 }

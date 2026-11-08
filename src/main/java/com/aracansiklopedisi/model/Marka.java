@@ -1,6 +1,7 @@
 package com.aracansiklopedisi.model;
 
 import java.time.Year;
+import java.util.Locale;
 
 public class Marka {
     private static final int EN_ESKI_YIL = 1800;
@@ -49,6 +50,6 @@ public class Marka {
     }
     @Override
     public int hashCode(){
-        return ad.toLowerCase().hashCode();
+        return ad.toLowerCase(Locale.ROOT).hashCode();
     }
 }
