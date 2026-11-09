@@ -8,6 +8,9 @@ import com.aracansiklopedisi.model.Batarya;
 import com.aracansiklopedisi.model.Kategori;
 import com.aracansiklopedisi.model.Marka;
 import com.aracansiklopedisi.model.Model;
+import com.aracansiklopedisi.model.OzellikDegeri;
+import com.aracansiklopedisi.model.OzellikTanimi;
+import com.aracansiklopedisi.model.OzellikTipi;
 import com.aracansiklopedisi.model.Varyant;
 import com.aracansiklopedisi.model.YakitTipi;
 
@@ -22,6 +25,7 @@ public class Main {
         bataryaTestleri();
         yakitTipiTestleri();
         varyantTestleri();
+        ozellikTestleri();
         ozetYazdir();
     }
 
@@ -292,5 +296,80 @@ public class Main {
         kontrol("hashCode esit", dizel.hashCode() == dizel2.hashCode());
         kontrol("farkli yakit esit degil",
                 !dizel.equals(new Varyant(corolla, "1.6 Dizel", 2019, null, YakitTipi.BENZIN, 110, 1300, null)));
+    }
+    private static void ozellikTestleri() {
+        baslik("Ozellik testleri");
+
+        // Test verisi: kategori agaci, marka, model, varyant
+        Kategori kara = new Kategori("Kara", null);
+        Kategori otomobil = new Kategori("Otomobil", kara);
+        Kategori sedan = new Kategori("Sedan", otomobil);
+        Kategori motosiklet = new Kategori("Motosiklet", kara);
+        Marka toyota = new Marka("Toyota", "Japonya", 1937);
+        Model corolla = new Model("Corolla", toyota, sedan, null);
+        Varyant dizel = new Varyant(corolla, "1.6 Dizel", 2019, null, YakitTipi.DIZEL, 110, 1300, null);
+
+        // Tanimlar
+        OzellikTanimi kapi = new OzellikTanimi("Kapi Sayisi", "adet", OzellikTipi.SAYI, otomobil);
+        OzellikTanimi hacim = new OzellikTanimi("Motor Hacmi", "litre", OzellikTipi.SAYI, otomobil);
+        OzellikTanimi klima = new OzellikTanimi("Klima", null, OzellikTipi.EVET_HAYIR, otomobil);
+        OzellikTanimi renk = new OzellikTanimi("Renk", "  ", OzellikTipi.METIN, otomobil);
+        OzellikTanimi motorCc = new OzellikTanimi("Motor Hacmi CC", "cc", OzellikTipi.SAYI, motosiklet);
+        OzellikTanimi karaOzelligi = new OzellikTanimi("Yol Tipi", null, OzellikTipi.METIN, kara);
+        System.out.println(kapi);
+
+        // --- OzellikTanimi ---
+        kontrol("tanim ad trim/getAd", new OzellikTanimi("  Agirlik ", "kg", OzellikTipi.SAYI, kara).getAd().equals("Agirlik"));
+        kontrol("birim var", kapi.getBirim().orElse("").equals("adet"));
+        kontrol("birim yok (null)", klima.getBirim().isEmpty());
+        kontrol("bos birim yok sayilir", renk.getBirim().isEmpty());
+        kontrol("tanim equals (ad harf farki)",
+            kapi.equals(new OzellikTanimi("KAPI SAYISI", null, OzellikTipi.SAYI, otomobil)));
+        kontrol("tanim hashCode esit",
+            kapi.hashCode() == new OzellikTanimi("KAPI SAYISI", null, OzellikTipi.SAYI, otomobil).hashCode());
+        kontrol("farkli kategori esit degil",
+            !kapi.equals(new OzellikTanimi("Kapi Sayisi", null, OzellikTipi.SAYI, sedan)));
+        hataBeklenir("tanim bos ad", () -> new OzellikTanimi("  ", null, OzellikTipi.SAYI, otomobil));
+        hataBeklenir("tanim null tip", () -> new OzellikTanimi("X", null, null, otomobil));
+        hataBeklenir("tanim null kategori", () -> new OzellikTanimi("X", null, OzellikTipi.SAYI, null));
+
+        // --- OzellikDegeri: gecerli durumlar ---
+        OzellikDegeri kapiDegeri = new OzellikDegeri(dizel, kapi, "5");
+        System.out.println(kapiDegeri);
+        kontrol("sayi degeri 5.0", kapiDegeri.getSayiDegeri() == 5.0);
+        kontrol("virgullu sayi 1,6", new OzellikDegeri(dizel, hacim, "1,6").getSayiDegeri() == 1.6);
+        kontrol("negatif sayi gecerli", new OzellikDegeri(dizel, kapi, "-3").getSayiDegeri() == -3.0);
+        kontrol("deger trim edilir", new OzellikDegeri(dizel, kapi, "  4 ").getDeger().equals("4"));
+        kontrol("evet", new OzellikDegeri(dizel, klima, "EVET").getEvetHayirDegeri());
+        kontrol("hayir", !new OzellikDegeri(dizel, klima, "Hayir").getEvetHayirDegeri());
+        kontrol("hayir (turkce ı)", !new OzellikDegeri(dizel, klima, "hay\u0131r").getEvetHayirDegeri());
+        kontrol("metin degeri", new OzellikDegeri(dizel, renk, "Kirmizi").getDeger().equals("Kirmizi"));
+        kontrol("MIRAS: ust kategori (Kara) tanimi sedan varyantina girilebilir",
+            new OzellikDegeri(dizel, karaOzelligi, "Asfalt").getDeger().equals("Asfalt"));
+
+        // --- OzellikDegeri: hatali durumlar ---
+        hataBeklenir("sayi yerine harf", () -> new OzellikDegeri(dizel, kapi, "abc"));
+        hataBeklenir("sayi: iki nokta", () -> new OzellikDegeri(dizel, kapi, "1.2.3"));
+        hataBeklenir("evet/hayir yerine belki", () -> new OzellikDegeri(dizel, klima, "belki"));
+        hataBeklenir("bos deger", () -> new OzellikDegeri(dizel, kapi, "  "));
+        hataBeklenir("null deger", () -> new OzellikDegeri(dizel, kapi, null));
+        hataBeklenir("null varyant", () -> new OzellikDegeri(null, kapi, "5"));
+        hataBeklenir("null tanim", () -> new OzellikDegeri(dizel, null, "5"));
+        hataBeklenir("KATEGORI: motosiklet ozelligi sedan varyantina girilemez",
+            () -> new OzellikDegeri(dizel, motorCc, "600"));
+
+        // --- Tipli getter yanlis kullanim: IllegalStateException bekleniyor ---
+        try {
+            kapiDegeri.getEvetHayirDegeri();
+            kontrol("SAYI ozellige getEvetHayirDegeri hata verir", false);
+        } catch (IllegalStateException e) {
+            kontrol("SAYI ozellige getEvetHayirDegeri hata verir", true);
+        }
+
+        // --- equals/hashCode ---
+        OzellikDegeri kapiDegeri2 = new OzellikDegeri(dizel, kapi, "3");
+        kontrol("ayni varyant+tanim esit (deger farki onemsiz)", kapiDegeri.equals(kapiDegeri2));
+        kontrol("hashCode esit", kapiDegeri.hashCode() == kapiDegeri2.hashCode());
+        kontrol("farkli tanim esit degil", !kapiDegeri.equals(new OzellikDegeri(dizel, hacim, "5")));
     }
 }

@@ -89,7 +89,7 @@ public class Varyant {
     @Override 
     public String toString(){
         String bitis = (bitisYili == null) ? "devam ediliyor" : String.valueOf(bitisYili);
-        return "Varyant{model=" + model.getMarka().getAd() + " " + model.getAd() + ", ad=" + ad + ", yakit=" + yakitTipi + ", yillar=" + baslangicYili + "-" + bitis + ", gucHp=" + gucHp + ", agirlikKg=" + agirlikKg + ", batarya=" + (batarya == null ? "yok" : batarya + "}");
+        return "Varyant{model=" + model.getMarka().getAd() + " " + model.getAd() + ", ad=" + ad + ", yakit=" + yakitTipi + ", yillar=" + baslangicYili + "-" + bitis + ", gucHp=" + gucHp + ", agirlikKg=" + agirlikKg + ", batarya=" + (batarya == null ? "yok" : batarya) + "}";
     }
     @Override 
     public boolean equals(Object o){

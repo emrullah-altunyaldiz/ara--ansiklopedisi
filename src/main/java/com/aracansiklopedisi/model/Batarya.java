@@ -22,6 +22,7 @@ public class Batarya {
     public int getMenzilKm(){
         return menzilKm; 
     }
+    @Override 
     public String toString(){
         return "Batarya{kapasiteKwh=" + kapasiteKwh + ", menzilKm=" + menzilKm + "}";
     }
