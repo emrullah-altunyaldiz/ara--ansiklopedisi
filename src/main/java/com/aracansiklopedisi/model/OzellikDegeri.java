@@ -18,7 +18,7 @@ public class OzellikDegeri {
             throw new IllegalArgumentException("Ozellik tanimi bos olamaz!");
         }
         if(deger == null || deger.isBlank()){
-            throw new IllegalArgumentException("Ozellik degeri bos oalamaz!");
+            throw new IllegalArgumentException("Ozellik degeri bos olamaz!");
         }
         if(!varyant.getModel().kategorideMi(tanim.getKategori())){
             throw new IllegalArgumentException("'" + tanim.getAd() + "' ozelligi bu varyantin kategorisinde gecerli degil: " + tanim.getKategori().getAd());
