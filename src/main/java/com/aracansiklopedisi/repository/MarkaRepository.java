@@ -9,5 +9,5 @@ public interface MarkaRepository {
     void ekle(Marka marka);
     Optional<Marka> adaGoreBul(String ad);
     List<Marka> hepsi();
-    List<Marka> ulkeyeGore();
+    List<Marka> ulkeyeGore(String ulke);
 }

@@ -13,6 +13,10 @@ import com.aracansiklopedisi.model.OzellikTanimi;
 import com.aracansiklopedisi.model.OzellikTipi;
 import com.aracansiklopedisi.model.Varyant;
 import com.aracansiklopedisi.model.YakitTipi;
+import com.aracansiklopedisi.repository.MarkaRepository;
+import com.aracansiklopedisi.repository.ModelRepository;
+import com.aracansiklopedisi.repository.bellek.BellekMarkaRepository;
+import com.aracansiklopedisi.repository.bellek.BellekModelRepository;
 
 public class Main {
     private static int basarili = 0;
@@ -26,6 +30,8 @@ public class Main {
         yakitTipiTestleri();
         varyantTestleri();
         ozellikTestleri();
+        repositoryTestleri();
+        modelRepositoryTestleri();
         ozetYazdir();
     }
 
@@ -371,5 +377,83 @@ public class Main {
         kontrol("ayni varyant+tanim esit (deger farki onemsiz)", kapiDegeri.equals(kapiDegeri2));
         kontrol("hashCode esit", kapiDegeri.hashCode() == kapiDegeri2.hashCode());
         kontrol("farkli tanim esit degil", !kapiDegeri.equals(new OzellikDegeri(dizel, hacim, "5")));
+    }
+    private static void repositoryTestleri() {
+        baslik("Repository testleri");
+
+        // Polimorfizm: degisken tipi interface (MarkaRepository), nesne gerceklemede (BellekMarkaRepository).
+        // Ileride BellekMarkaRepository yerine SqlMarkaRepository yazilirsa bu satirin disinda
+        // hicbir kod degismez, cunku geri kalan her sey sadece MarkaRepository'yi bilir.
+        MarkaRepository repo = new BellekMarkaRepository();
+
+        Marka toyota = new Marka("Toyota", "Japonya", 1937);
+        Marka ford = new Marka("Ford", "ABD", 1903);
+        repo.ekle(toyota);
+            repo.ekle(ford);
+
+        kontrol("hepsi() 2 eleman", repo.hepsi().size() == 2);
+        kontrol("adaGoreBul buyuk harf", repo.adaGoreBul("TOYOTA").isPresent());
+        kontrol("adaGoreBul kucuk harf", repo.adaGoreBul("toyota").isPresent());
+        kontrol("adaGoreBul dogru markayi getirir", repo.adaGoreBul("Toyota").get().equals(toyota));
+        kontrol("adaGoreBul olmayan -> bos", repo.adaGoreBul("Honda").isEmpty());
+        kontrol("adaGoreBul(null) -> bos", repo.adaGoreBul(null).isEmpty());
+
+        kontrol("ulkeyeGore Japonya 1 eleman", repo.ulkeyeGore("Japonya").size() == 1);
+        kontrol("ulkeyeGore ABD 1 eleman", repo.ulkeyeGore("ABD").size() == 1);
+        kontrol("ulkeyeGore olmayan ulke 0 eleman", repo.ulkeyeGore("Almanya").isEmpty());
+        kontrol("ulkeyeGore(null) -> bos", repo.ulkeyeGore(null).isEmpty());
+
+        hataBeklenir("ayni marka iki kez eklenemez", () -> repo.ekle(new Marka("toyota", "Japonya", 1937)));
+        hataBeklenir("null marka eklenemez", () -> repo.ekle(null));
+
+        // hepsi()'nin GERCEKTEN kopya oldugunu kanitla: disaridan degistirme denemesi
+        try {
+            repo.hepsi().add(new Marka("Honda", "Japonya", 1948));
+            kontrol("hepsi() disaridan degistirilemez", false);
+        } catch (UnsupportedOperationException e) {
+            kontrol("hepsi() disaridan degistirilemez", true);
+        }
+        // Ustteki denemeden sonra repo'nun ic listesi hala 2 eleman olmali (etkilenmedi)
+        kontrol("disaridan ekleme denemesinden sonra hala 2 eleman", repo.hepsi().size() == 2);
+    }
+    private static void modelRepositoryTestleri() {
+        baslik("Model repository testleri");
+
+        Kategori kara = new Kategori("Kara", null);
+        Kategori otomobil = new Kategori("Otomobil", kara);
+        Kategori sedan = new Kategori("Sedan", otomobil);
+        Kategori suv = new Kategori("SUV", otomobil);
+        Kategori motosiklet = new Kategori("Motosiklet", kara);
+
+        Marka toyota = new Marka("Toyota", "Japonya", 1937);
+        Marka ford = new Marka("Ford", "ABD", 1903);
+
+        Model corolla = new Model("Corolla", toyota, sedan, null);
+        Model rav4 = new Model("RAV4", toyota, suv, null);
+        Model focus = new Model("Focus", ford, sedan, null);
+
+        ModelRepository repo = new BellekModelRepository();
+        repo.ekle(corolla);
+        repo.ekle(rav4);
+        repo.ekle(focus);
+
+        kontrol("hepsi() 3 eleman", repo.hepsi().size() == 3);
+        kontrol("bul: toyota+corolla", repo.bul(toyota, "corolla").isPresent());
+        kontrol("bul: olmayan model -> bos", repo.bul(toyota, "Yaris").isEmpty());
+        kontrol("bul(null) -> bos", repo.bul(null, "Corolla").isEmpty());
+
+        kontrol("markayaGore toyota 2 eleman", repo.markayaGore(toyota).size() == 2);
+        kontrol("markayaGore ford 1 eleman", repo.markayaGore(ford).size() == 1);
+
+        // ASIL TEST: Otomobil kategorisi sorulunca Sedan VE SUV'daki modeller gelmeli (miras).
+        kontrol("kategorideKiModeller(otomobil) 3 eleman", repo.kategorideKiModeller(otomobil).size() == 3);
+        kontrol("kategorideKiModeller(sedan) 2 eleman", repo.kategorideKiModeller(sedan).size() == 2);
+        kontrol("kategorideKiModeller(kara) 3 eleman", repo.kategorideKiModeller(kara).size() == 3);
+        kontrol("kategorideKiModeller(motosiklet) 0 eleman", repo.kategorideKiModeller(motosiklet).isEmpty());
+        kontrol("kategorideKiModeller(null) -> bos", repo.kategorideKiModeller(null).isEmpty());
+
+        hataBeklenir("ayni model iki kez eklenemez",
+            () -> repo.ekle(new Model("COROLLA", new Marka("toyota", "Japonya", 1937), sedan, null)));
+        hataBeklenir("null model eklenemez", () -> repo.ekle(null));
     }
 }
