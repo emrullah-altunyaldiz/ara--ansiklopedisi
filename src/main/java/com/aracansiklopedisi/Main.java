@@ -15,8 +15,10 @@ import com.aracansiklopedisi.model.Varyant;
 import com.aracansiklopedisi.model.YakitTipi;
 import com.aracansiklopedisi.repository.MarkaRepository;
 import com.aracansiklopedisi.repository.ModelRepository;
+import com.aracansiklopedisi.repository.VaryantRepository;
 import com.aracansiklopedisi.repository.bellek.BellekMarkaRepository;
 import com.aracansiklopedisi.repository.bellek.BellekModelRepository;
+import com.aracansiklopedisi.repository.bellek.BellekVaryantRepository;
 
 public class Main {
     private static int basarili = 0;
@@ -32,6 +34,7 @@ public class Main {
         ozellikTestleri();
         repositoryTestleri();
         modelRepositoryTestleri();
+        varyantRepositoryTestleri();
         ozetYazdir();
     }
 
@@ -455,5 +458,46 @@ public class Main {
         hataBeklenir("ayni model iki kez eklenemez",
             () -> repo.ekle(new Model("COROLLA", new Marka("toyota", "Japonya", 1937), sedan, null)));
         hataBeklenir("null model eklenemez", () -> repo.ekle(null));
+    }
+    private static void varyantRepositoryTestleri() {
+        baslik("Varyant repository testleri");
+
+        Kategori kara = new Kategori("Kara", null);
+        Kategori otomobil = new Kategori("Otomobil", kara);
+        Kategori sedan = new Kategori("Sedan", otomobil);
+
+        Marka toyota = new Marka("Toyota", "Japonya", 1937);
+        Model corolla = new Model("Corolla", toyota, sedan, null);
+        Model focus = new Model("Focus", new Marka("Ford", "ABD", 1903), sedan, null);
+
+        Batarya bat = new Batarya(50, 350);
+        Varyant dizel = new Varyant(corolla, "1.6 Dizel", 2019, null, YakitTipi.DIZEL, 110, 1300, null);
+        Varyant benzin = new Varyant(corolla, "1.6 Benzin", 2019, null, YakitTipi.BENZIN, 120, 1280, null);
+        Varyant ev = new Varyant(corolla, "EV", 2023, null, YakitTipi.ELEKTRIK, 200, 1700, bat);
+        Varyant focusDizel = new Varyant(focus, "1.5 Dizel", 2018, null, YakitTipi.DIZEL, 105, 1250, null);
+
+        VaryantRepository repo = new BellekVaryantRepository();
+        repo.ekle(dizel);
+        repo.ekle(benzin);
+        repo.ekle(ev);
+        repo.ekle(focusDizel);
+
+        kontrol("hepsi() 4 eleman", repo.hepsi().size() == 4);
+        kontrol("bul: corolla+1.6 dizel", repo.bul(corolla, "1.6 dizel").isPresent());
+        kontrol("bul: olmayan varyant -> bos", repo.bul(corolla, "2.0 Dizel").isEmpty());
+        kontrol("bul(null) -> bos", repo.bul(null, "EV").isEmpty());
+
+        kontrol("modeleGore corolla 3 eleman", repo.modeleGore(corolla).size() == 3);
+        kontrol("modeleGore focus 1 eleman", repo.modeleGore(focus).size() == 1);
+        kontrol("modeleGore(null) -> bos", repo.modeleGore(null).isEmpty());
+
+        kontrol("yakitTipineGore DIZEL 2 eleman", repo.yakitTipineGore(YakitTipi.DIZEL).size() == 2);
+        kontrol("yakitTipineGore ELEKTRIK 1 eleman", repo.yakitTipineGore(YakitTipi.ELEKTRIK).size() == 1);
+        kontrol("yakitTipineGore LPG 0 eleman", repo.yakitTipineGore(YakitTipi.LPG).isEmpty());
+        kontrol("yakitTipineGore(null) -> bos", repo.yakitTipineGore(null).isEmpty());
+
+        hataBeklenir("ayni varyant iki kez eklenemez",
+            () -> repo.ekle(new Varyant(corolla, "1.6 DIZEL", 2019, null, YakitTipi.DIZEL, 110, 1300, null)));
+        hataBeklenir("null varyant eklenemez", () -> repo.ekle(null));
     }
 }
